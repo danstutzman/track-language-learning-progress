@@ -1,0 +1,2 @@
+#!/bin/bash -ex
+exec env multi="mocha-osx-reporter=- spec=-" node_modules/mocha/bin/mocha -R mocha-multi --compilers coffee:coffee-script/register --ui tdd -w
