@@ -6,7 +6,7 @@
     "node-localstorage": "^1.1.2"
   },
   "devDependencies": {
-    "coffee-script": "^1.10.0",
+    "iced-coffee-script": "^108.0.9",
     "mocha": "^2.3.4",
     "mocha-multi": "^0.7.2",
     "mocha-osx-reporter": "^0.1.2"
