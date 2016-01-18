@@ -55,11 +55,12 @@ questionAt = Date.now()
 await rl.question "Translate to English: #{noun.spanish}\n", defer answer
 # round responseDelay to nearest tenth of second
 responseDelay = Math.floor((Date.now() - questionAt) / 100) * 100 / 1000
-correct = (answer is noun.english)
+correct = (noun.english_options.indexOf(answer) != -1)
 if correct
   console.log 'correct!'
 else
-  console.log "incorrect - expected #{noun.english}"
+  expected = ("\"#{english}\"" for english in noun.english_options).join(' or ')
+  console.log "incorrect - expected #{expected}"
 response =
   nounId: noun.id
   correct: correct
