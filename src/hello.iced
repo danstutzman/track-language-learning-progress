@@ -47,7 +47,8 @@ nounIdsNeedingReview = arrayDifference(allNounIds,
 nounIdToReview = randomPick(nounIdsNeedingReview)
 nounsToReview = (noun for noun in nouns when noun.id == nounIdToReview)
 if nounsToReview.length == 0
-  throw new Error "No nouns to review"
+  console.error 'No nouns to review'
+  process.exit 0
 noun = nounsToReview[0]
 
 questionAt = Date.now()
