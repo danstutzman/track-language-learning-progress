@@ -1,86 +1,36 @@
 fs             = require 'fs'
 {LocalStorage} = require 'node-localstorage'
 readline       = require 'readline'
-
-uniq = (list) ->
-  obj = {}
-  for item in list
-    obj[item] = true
-  keys = []
-  for key of obj
-    keys.push key
-  keys
-
-randomPick = (list) ->
-  list[Math.floor(Math.random() * list.length)]
-
-arrayDifference = (a1, a2) ->
-  obj = {}
-  for item in a2
-    obj[item] = true
-  difference = []
-  for item in a1
-    if !obj[item]
-      difference.push item
-  difference
-
-loadNouns = (localStorage) ->
-  nounsJson = localStorage.getItem 'nouns.json'
-  if nounsJson is null
-    throw new Error "Can't find nouns.json in localStorage"
-  nounsTable = JSON.parse localStorage.getItem 'nouns.json'
-
-  nounKeys = nounsTable.shift()
-  nouns = []
-  for nounRow in nounsTable
-    nounObject = {}
-    for nounKey, i in nounKeys
-      nounObject[nounKey] = nounRow[i]
-    nouns.push nounObject
-  nouns
-
-loadResponses = (localStorage) ->
-  JSON.parse(localStorage.getItem('responses.json') or '[]')
-
-pickNounToReview = (nouns, oldResponses) ->
-  allNounIds = (noun.id for noun in nouns)
-  nounIdsNeedingReview = arrayDifference(allNounIds,
-    uniq(response.nounId for response in oldResponses when response.correct))
-  nounIdToReview = randomPick(nounIdsNeedingReview)
-  nounsToReview = (noun for noun in nouns when noun.id == nounIdToReview)
-  if nounsToReview.length == 0
-    console.error 'No nouns to review'
-    process.exit 0
-  noun = nounsToReview[0]
+FlashcardsDb   = require './FlashcardsDb'
 
 isEnglishAnswerAcceptable = (userAnswer, noun) ->
   noun.english_options.indexOf(userAnswer) != -1
 
-askQuestion = (noun, rl, localStorage) ->
+askQuestion = (noun, rl, cb) ->
   questionAt = Date.now()
-  await rl.question "Translate to English: #{noun.spanish}\n", defer answer
-  # round responseDelay to nearest tenth of second
-  responseDelay = Math.floor((Date.now() - questionAt) / 100) * 100 / 1000
-  if isEnglishAnswerAcceptable(answer)
-    console.log 'correct!'
-  else
-    expected = ("\"#{english}\"" for english in noun.english_options).join(' or ')
-    console.log "incorrect - expected #{expected}"
-  response =
-    nounId: noun.id
-    correct: correct
-    questionAt: Math.floor(questionAt / 1000)
-    responseDelay: responseDelay
-  localStorage.setItem 'responses.json', JSON.stringify(oldResponses.concat([response]))
-  rl.close() # otherwise program will keep waiting on stdin
+  rl.question "Translate to English: #{noun.spanish}\n", (answer) ->
+    # round responseDelay to nearest tenth of second
+    responseDelay = Math.floor((Date.now() - questionAt) / 100) * 100 / 1000
+    correct = isEnglishAnswerAcceptable(answer, noun)
+    if correct
+      console.log 'correct!'
+    else
+      expected = ("\"#{english}\"" for english in noun.english_options).join(' or ')
+      console.log "incorrect - expected #{expected}"
+    response =
+      nounId: noun.id
+      correct: correct
+      questionAt: Math.floor(questionAt / 1000)
+      responseDelay: responseDelay
+    rl.close() # otherwise program will keep waiting on stdin
+    cb response
 
 if module == require.main
   rl = readline.createInterface input: process.stdin, output: process.stdout
-  localStorage = new LocalStorage './db'
-  nouns = loadNouns localStorage
-  oldResponses = loadResponses localStorage
-  noun = pickNounToReview nouns, oldResponses
-  askQuestion noun, rl, localStorage
+  db = new FlashcardsDb(new LocalStorage('./db'))
+  noun = db.pickNounToReview()
+  askQuestion noun, rl, (response) ->
+    db.saveNewResponse response
 else
   module.exports = {
     isEnglishAnswerAcceptable
