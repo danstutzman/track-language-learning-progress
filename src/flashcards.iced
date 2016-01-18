@@ -53,13 +53,15 @@ pickNounToReview = (nouns, oldResponses) ->
     process.exit 0
   noun = nounsToReview[0]
 
+isEnglishAnswerAcceptable = (userAnswer, noun) ->
+  noun.english_options.indexOf(userAnswer) != -1
+
 askQuestion = (noun, rl, localStorage) ->
   questionAt = Date.now()
   await rl.question "Translate to English: #{noun.spanish}\n", defer answer
   # round responseDelay to nearest tenth of second
   responseDelay = Math.floor((Date.now() - questionAt) / 100) * 100 / 1000
-  correct = (noun.english_options.indexOf(answer) != -1)
-  if correct
+  if isEnglishAnswerAcceptable(answer)
     console.log 'correct!'
   else
     expected = ("\"#{english}\"" for english in noun.english_options).join(' or ')
@@ -79,3 +81,7 @@ if module == require.main
   oldResponses = loadResponses localStorage
   noun = pickNounToReview nouns, oldResponses
   askQuestion noun, rl, localStorage
+else
+  module.exports = {
+    isEnglishAnswerAcceptable
+  }
