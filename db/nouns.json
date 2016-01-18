@@ -1,0 +1,12 @@
+[
+  ["id", "spanish", "english_options"],
+  [1, "chico", ["boy"]],
+  [2, "chica", ["girl"]],
+  [3, "jardín", ["garden"]],
+  [4, "universidad", ["university"]],
+  [5, "libro", ["book"]],
+  [6, "revista", ["magazine"]],
+  [7, "miedo", ["fear"]],
+  [8, "libertad", ["liberty"]],
+  [9, "equipaje", ["luggage", "baggage"]]
+]

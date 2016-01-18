@@ -1,3 +1,3 @@
 .*.swp
-/db
+/db/responses.json
 /node_modules
