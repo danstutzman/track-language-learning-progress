@@ -1,5 +1,5 @@
 assert     = require 'assert'
-flashcards = require '../src/flashcards.iced'
+flashcards = require '../src/flashcards'
 
 test "say answer is correct when it's correct", ->
   noun =

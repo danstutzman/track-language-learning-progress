@@ -1,2 +1,2 @@
 #!/bin/bash -ex
-node_modules/iced-coffee-script/bin/coffee src/flashcards.iced
+node_modules/coffee-script/bin/coffee src/flashcards.coffee
