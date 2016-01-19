@@ -10,7 +10,7 @@ testTranslationToEnglish = (noun) ->
   console.log "Press space when you remember the English translation of:\n\n" +
     "#{noun.spanish}\n"
   new Promise (resolve, reject) ->
-    setNextKeypressDeferred(1000).promise.then (key) ->
+    setNextKeypressDeferred(2000).promise.then (key) ->
       # round responseDelay to nearest tenth of second
       responseDelay = Math.floor((Date.now() - questionAt) / 100) * 100 / 1000
       expected = ("\"#{english}\"" for english in noun.english_options).join(' or ')
