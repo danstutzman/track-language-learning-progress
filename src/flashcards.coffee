@@ -3,6 +3,7 @@ Promise        = require 'bluebird'
 FlashcardsDb   = require './FlashcardsDb'
 
 TIMEOUT = -1
+KEY_Y   = 121
 
 testTranslationToEnglish = (noun) ->
   questionAt = Date.now()
@@ -24,7 +25,7 @@ testTranslationToEnglish = (noun) ->
       else
         console.log "Was your answer correct? (Y/N)"
         setNextKeypressDeferred().promise.then (key2) ->
-          response.correct = (key2 == 'y' or key2 == 'Y')
+          response.correct = (key2 == KEY_Y)
           resolve response
 
 if module == require.main
