@@ -1,40 +1,48 @@
-fs             = require 'fs'
 {LocalStorage} = require 'node-localstorage'
-readline       = require 'readline'
-Q              = require 'q'
+Promise        = require 'bluebird'
 FlashcardsDb   = require './FlashcardsDb'
 
-isEnglishAnswerAcceptable = (userAnswer, noun) ->
-  noun.english_options.indexOf(userAnswer) != -1
-
-askQuestion = (noun, rl) ->
-  deferred = Q.defer()
+testTranslationToEnglish = (noun) ->
   questionAt = Date.now()
-  rl.question "Translate to English: #{noun.spanish}\n", (answer) ->
-    # round responseDelay to nearest tenth of second
-    responseDelay = Math.floor((Date.now() - questionAt) / 100) * 100 / 1000
-    correct = isEnglishAnswerAcceptable(answer, noun)
-    if correct
-      console.log 'correct!'
-    else
+  console.log "Press space when you remember the English translation of:\n\n" +
+    "#{noun.spanish}\n"
+  new Promise (resolve, reject) ->
+    setNextKeypressDeferred().promise.then (key) ->
+      # round responseDelay to nearest tenth of second
+      responseDelay = Math.floor((Date.now() - questionAt) / 100) * 100 / 1000
       expected = ("\"#{english}\"" for english in noun.english_options).join(' or ')
-      console.log "incorrect - expected #{expected}"
-    response =
-      nounId: noun.id
-      correct: correct
-      questionAt: Math.floor(questionAt / 1000)
-      responseDelay: responseDelay
-    rl.close() # otherwise program will keep waiting on stdin
-    deferred.resolve response
-  deferred.promise
+      console.log "Answer is: #{expected}"
+      console.log "Was your answer correct? (Y/N)"
+      setNextKeypressDeferred().promise.then (key2) ->
+        correct = (key2 == 'y' or key2 == 'Y')
+        response =
+          nounId: noun.id
+          correct: correct
+          questionAt: Math.floor(questionAt / 1000)
+          responseDelay: responseDelay
+        stdin.pause() # allow program to exit
+        resolve response
 
 if module == require.main
-  rl = readline.createInterface input: process.stdin, output: process.stdout
+  nextKeypressDeferred = []
+  setNextKeypressDeferred = ->
+    [resolve, reject] = [null, null]
+    promise = new Promise (resolve_, reject_) ->
+      [resolve, reject] = [resolve_, reject_]
+    nextKeypressDeferred[0] = { promise, resolve, reject }
+  stdin = process.openStdin()
+  stdin.resume()
+  stdin.setRawMode true
+  stdin.on 'data', (buffer) ->
+    if buffer[0] == 3 # Ctrl-C
+      process.exit 1
+    if nextKeypressDeferred[0]
+      nextKeypressDeferred[0].resolve buffer[0]
+      nextKeypressDeferred[0] = null
+
   db = new FlashcardsDb(new LocalStorage('./db'))
   noun = db.pickNounToReview()
-  askQuestion(noun, rl).then (response) ->
-    db.saveNewResponse response
+  testTranslationToEnglish(noun)
+    .then((response) -> db.saveNewResponse response)
 else
-  module.exports = {
-    isEnglishAnswerAcceptable
-  }
+  module.exports = {}
