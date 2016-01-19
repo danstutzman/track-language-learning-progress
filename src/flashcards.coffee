@@ -7,6 +7,7 @@ KEY_Y   = 121
 
 testTranslationToEnglish = (noun) ->
   questionAt = Date.now()
+  console.log "-----------"
   console.log "Press space when you remember the English translation of:\n\n" +
     "#{noun.spanish}\n"
   new Promise (resolve, reject) ->
@@ -50,9 +51,18 @@ if module == require.main
       nextKeypressDeferred[0] = null
 
   db = new FlashcardsDb(new LocalStorage('./db'))
-  noun = db.pickNounToReview()
-  testTranslationToEnglish(noun)
-    .then((response) -> db.saveNewResponse response)
-    .then(-> stdin.pause()) # allow program to exit
+  testOneCard = ->
+    noun = db.pickNounToReview()
+    if noun
+      testTranslationToEnglish(noun)
+        .then((response) -> db.saveNewResponse response)
+        .then(->
+          console.log "Press any key when ready for next card..."
+          setNextKeypressDeferred().promise.then testOneCard)
+    else
+      console.error 'No nouns to review'
+      stdin.pause() # so program can exit
+  testOneCard()
+
 else
   module.exports = {}

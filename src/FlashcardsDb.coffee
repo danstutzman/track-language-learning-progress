@@ -48,10 +48,7 @@ class FlashcardsDb
       uniq(response.nounId for response in responses when response.correct))
     nounIdToReview = randomPick(nounIdsNeedingReview)
     nounsToReview = (noun for noun in nouns when noun.id == nounIdToReview)
-    if nounsToReview.length == 0
-      console.error 'No nouns to review'
-      process.exit 0
-    noun = nounsToReview[0]
+    nounsToReview[0] # could be null if none
 
   saveNewResponse: (newResponse) ->
     responses = @_loadResponses()
