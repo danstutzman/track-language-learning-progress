@@ -1,3 +1,4 @@
+.DS_Store
 .*.swp
 /db/responses.json
 /node_modules
